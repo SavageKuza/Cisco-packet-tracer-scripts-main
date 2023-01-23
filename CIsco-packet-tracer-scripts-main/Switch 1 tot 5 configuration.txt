@@ -126,7 +126,6 @@ interface FastEthernet0/24
 interface GigabitEthernet0/1
  switchport trunk native vlan 99
  switchport mode trunk
- switchport nonegotiate
 !
 interface GigabitEthernet0/2
  description vlan 50
