@@ -28,3 +28,6 @@ volgorde van de scripts maakt in principe niet uit maar voor de zekerheid!
 
 Op het eind op elke modem Ip route 0.0.0.0 0.0.0.0 en eind hop ip om de connecties tussen de routers in te stellen         .
 Ip route 0.0.0.0 0.0.0.0 Lo1 (alleen bij isp)
+
+
+https://discord.gg/BNy7EkmQUg
