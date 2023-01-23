@@ -1,0 +1,119 @@
+
+
+Bijlage 2 Technisch Ontwerp
+Fysiek Netwerkontwerp ‘ Basisschool Pinkeltje’
+ 
+
+Netwerk Devices (uitbreidings-apparatuur)
+Device	Model	Poort	Uitbreiding	Model
+ISP	ISR 4322	Fiber Gigabit Ethernet port	GLC-CE-100FX
+Switch_PT-Empty		Fiber Fastethernet	PT-Switch-NM-1CFE
+			
+P_L50 (Laptop)	Generic	Wireless-card	WPC300N
+P_PR50 ( Printer)	Generic	Fastethernet 0		
+P_A50 (AccessPoint)	AP-PT	P0	Gigabit Ethernet	PT-Repeater-NM-1CGE
+P_SW5 (Switch)	2960			
+				
+P_PC40 (Computer)	Generic	FastEthernet 0		PT-HOST-NM-1CFE
+P_S40 (Server)	Generic	FastEthernet 0		PT-HOST-NM-1CFE
+P_SW4	2960			
+
+Gebruik bij het bouwen dezelfde kabels als in het Netwerkontwerp van Pinkeltje !!!!!
+ 
+IP-nummerplan 
+	Netwerk 	Usable Host Range	Broadcast
+Arnhem ( geel )	11.11.11.0/24	11.11.11.1 – 11.11.11.254	11.11.11.255
+Internet	13.13.13.1/24	Loopback 0 op Router ISP
+ISP ------ P_Edge	12.12.12.0/24	12.12.12.1 – 11.12.12.254	12.12.12.255
+P_Edge  P_MLS	10.1.1.0/30	10.1.1.1 en 10.1.1.2	10.1.1.3
+
+P-nummerplan P_MLS
+	Netwerk 		IP-adres reserveringen 	Type
+VLAN10	172.16.10.0/24		Routers               x.x.x.1 t/m x.x.x.9	Static
+VLAN20	172.16.20.0/24		Servers               x.x.x.10 t/m x.x.x.29	Static
+VLAN30	172.16.30.0/24		Printers              x.x.x.30 t/m x.x.x.39	Static
+VLAN40	172.16.40.0/24		PC/laptop          x.x.x.50 t/m laatste ip adres	DHCP
+VLAN50	172.16.50.0/24			
+VLAN99	172.16.99.0/24			
+
+Ip-adressen
+Device	Interface	IP-address		Device	Interface	IP-address
+P_L50 laptop	Fa0	DHCP		P_Edge	G0/0/1	DHCP Client
+P_PR30	Fa0	172.16.30.30/24			G/0/0/0	10.1.1.1/30
+P_PR20	Fa0	172.16.20.30/24		P_MLS	Gig 1/0/24	10.1.1.2/30
+P_PR10	Fa0	172.16.10.30/24				
+P_PC40	Fa0	DHCP				
+P_S40	Fa0	172.16.40.10/24				
+P_A50	Port 0	On/auto				
+						
+						
+						
+
+VLAN Managent
+VLAN	Naam		VTP	Domein	Server	Client
+1	Generiek		MLS	Pinkeltje	X	
+10	Vlan10		P_SW1 t/m P_SW5	Pinkeltje		X
+20	Vlan20					
+30	Vlan30					
+40	Vlan40					
+50	Vlan50					
+99	Vlan99					
+ 
+Spanning Tree instellingen op alle switches behalve ISR-switch
+Switch	Mode	Bridge 
+priority	Toelichting
+P_MLS	Root	4096	spanning-tree vlan 1-100 root primary
+spanning-tree vlan 1-100 priority 4096
+P_SV1		8192	spanning-tree vlan 1-100 priority 8192
+P_SV2		12288	spanning-tree vlan 1-100 priority 12288
+P_SV3		16384	spanning-tree vlan 1-100 priority 16384
+P_SV4		20480	spanning-tree vlan 1-100 priority 20480
+P_SV5		24576	spanning-tree vlan 1-100 priority 24576
+Switch indeling P_SW1 t/m P_SW5
+
+Switch	Poorten	VLAN-id/
+trunk		Diverse
+Instellingen	
+P_SWx	F0/1-5	10		Draadloos	SSID             – VlanXX (XX = Vlan nummer)
+Beveiliging  – WPA2-PSK
+Sleutel         -   P@sswordXX
+	F0/6-14	20			
+	F0/15-18	30		Routering	Routering wordt ingesteld voor ISP, P_Edge 
+	F0/19	40			Gebruik OSPF area 0 
+	F0/20-22	99			IOS commando : router ospf 1
+                     	F0/23	Trunk			                              Network 12.12.12.0 0.0.0.255 area 0
+	F0/24	Trunk			                              Passive-Interface X.X.X.X
+	G0/1	Trunk			                              Default-information originate
+	G0/2	50			
+P_MLS	G1/0/1-5	Trunk			
+	G1/0/24	1			
+
+Diverse Instellingen (vervolg)
+Instelling	uitleg
+Beveiliging	Access Control List:
+
+Netwerkverkeer van VLAN 50 mag alleen naar het internet. 
+
+access-list 150 deny ip 172.16.50.0 0.0.0.255 172.16.10.0 0.0.0.255
+access-list 150 deny ip 172.16.50.0 0.0.0.255 172.16.20.0 0.0.0.255
+access-list 150 deny ip 172.16.50.0 0.0.0.255 172.16.30.0 0.0.0.255
+access-list 150 deny ip 172.16.50.0 0.0.0.255 172.16.40.0 0.0.0.255
+access-list 150 deny ip 172.16.50.0 0.0.0.255 172.16.99.0.0 0.0.255
+access-list 150 permit ip any any
+Internet toegang	P_Edge krijgt van de ISP een IP adres. Via P_Edge krijgt het netwerk van Pinkeltje internet. De instellingen zijn reeds in P_Edge ingesteld
+Nat	interface GigabitEthernet0/0/0
+description P_Edge naar P_MLS
+ip address 10.1.1.1 255.255.255.252
+ip nat inside
+duplex auto
+	interface GigabitEthernet0/0/1
+description P_Edge naar Hilversum Gi/0/0/1
+ip address dhcp
+ip nat outside
+duplex auto
+speed auto
+	access-list 1 permit any
+	ip nat inside source list 1 interface GigabitEthernet0/0/1 overload
+	Internet is beschikbaar voor alle apparaten 
+Test het internet met de website Pinkeltje (11.11.11.14)
+
